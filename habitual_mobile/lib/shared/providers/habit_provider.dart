@@ -3,6 +3,7 @@ import '../models/habit.dart';
 import '../repositories/habit_repository.dart';
 import '../repositories/habit_log_repository.dart';
 import '../services/notification_service.dart';
+import 'user_streak_provider.dart';
 
 final habitRepositoryProvider = Provider<HabitRepository>((ref) {
   return HabitRepository();
@@ -15,7 +16,7 @@ final habitLogRepositoryProvider = Provider<HabitLogRepository>((ref) {
 final habitsProvider = StateNotifierProvider<HabitNotifier, AsyncValue<List<HabitWithCategory>>>((ref) {
   final habitRepository = ref.read(habitRepositoryProvider);
   final logRepository = ref.read(habitLogRepositoryProvider);
-  return HabitNotifier(habitRepository, logRepository);
+  return HabitNotifier(habitRepository, logRepository, ref);
 });
 
 final archivedHabitsProvider = FutureProvider<List<HabitWithCategory>>((ref) async {
@@ -27,8 +28,9 @@ class HabitNotifier extends StateNotifier<AsyncValue<List<HabitWithCategory>>> {
   final HabitRepository _habitRepository;
   final HabitLogRepository _logRepository;
   final NotificationService _notificationService = NotificationService();
+  final Ref _ref;
 
-  HabitNotifier(this._habitRepository, this._logRepository) 
+  HabitNotifier(this._habitRepository, this._logRepository, this._ref) 
       : super(const AsyncValue.loading()) {
     loadHabits();
   }
@@ -143,11 +145,58 @@ class HabitNotifier extends StateNotifier<AsyncValue<List<HabitWithCategory>>> {
         await _logRepository.logHabitCompletion(habitKey, date);
       }
       
+      // Check if all habits are completed today and update user streak
+      await _checkAndUpdateUserStreak();
+      
       // Notify listeners that state has changed
       state = state;
       return true;
     } catch (error) {
       return false;
+    }
+  }
+
+  Future<void> _checkAndUpdateUserStreak() async {
+    try {
+      print('DEBUG _checkAndUpdateUserStreak: Starting check...');
+      
+      // Get all active (non-archived) habits
+      final allHabits = await _habitRepository.getHabitsWithCategory();
+      final activeHabits = allHabits.where((hwc) => !hwc.habit.isArchived).toList();
+      
+      print('DEBUG _checkAndUpdateUserStreak: Total habits=${allHabits.length}, Active habits=${activeHabits.length}');
+      
+      if (activeHabits.isEmpty) {
+        print('DEBUG _checkAndUpdateUserStreak: No active habits, skipping');
+        return; // No habits to check
+      }
+      
+      // Check if at least one habit is completed today
+      final today = DateTime.now();
+      bool anyCompleted = false;
+      int completedCount = 0;
+      
+      for (final hwc in activeHabits) {
+        final habitKey = hwc.key;
+        if (habitKey != null) {
+          final isCompleted = await _logRepository.isHabitCompletedOnDate(habitKey, today);
+          print('DEBUG _checkAndUpdateUserStreak: Habit "${hwc.habit.title}" (key=$habitKey) completed=$isCompleted');
+          
+          if (isCompleted) {
+            completedCount++;
+            anyCompleted = true;
+          }
+        }
+      }
+      
+      print('DEBUG _checkAndUpdateUserStreak: Completed=$completedCount/${activeHabits.length}, AnyCompleted=$anyCompleted');
+      
+      // Update user streak - pass true if any habit completed
+      await _ref.read(userStreakProvider.notifier).checkAndUpdateStreak(anyCompleted);
+      print('DEBUG _checkAndUpdateUserStreak: User streak update completed');
+    } catch (e, stackTrace) {
+      print('DEBUG _checkAndUpdateUserStreak: Error: $e');
+      print('DEBUG _checkAndUpdateUserStreak: StackTrace: $stackTrace');
     }
   }
 

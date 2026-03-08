@@ -1,8 +1,11 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import '../../shared/models/category.dart';
 import '../../shared/models/habit.dart';
 import '../../shared/models/habit_log.dart';
 import '../../shared/models/habit_frequency.dart';
+import '../../shared/models/user_streak.dart';
 
 class DatabaseService {
   static DatabaseService? _instance;
@@ -18,23 +21,68 @@ class DatabaseService {
   Future<void> initialize() async {
     if (_initialized) return;
     
-    await Hive.initFlutter();
-    
-    // Register adapters
-    Hive.registerAdapter(CategoryAdapter());
-    Hive.registerAdapter(HabitAdapter());
-    Hive.registerAdapter(HabitLogAdapter());
-    Hive.registerAdapter(HabitFrequencyAdapter());
-    
-    // Open boxes
-    await Hive.openBox<Category>('categories');
-    await Hive.openBox<Habit>('habits');
-    await Hive.openBox<HabitLog>('habit_logs');
-    
-    // TEMPORARY FIX: Clear invalid habit logs
-    await _cleanupInvalidHabitLogs();
-    
-    _initialized = true;
+    try {
+      print('DEBUG initialize: Starting Hive initialization');
+      
+      // Get application documents directory explicitly
+      final Directory appDocDir = await getApplicationDocumentsDirectory();
+      final String path = appDocDir.path;
+      print('DEBUG initialize: App documents path: $path');
+      
+      // Initialize Hive with explicit path
+      await Hive.initFlutter(path);
+      print('DEBUG initialize: Hive initialized successfully');
+      
+      // Register adapters
+      if (!Hive.isAdapterRegistered(0)) {
+        Hive.registerAdapter(CategoryAdapter());
+        print('DEBUG initialize: CategoryAdapter registered');
+      }
+      if (!Hive.isAdapterRegistered(1)) {
+        Hive.registerAdapter(HabitAdapter());
+        print('DEBUG initialize: HabitAdapter registered');
+      }
+      if (!Hive.isAdapterRegistered(2)) {
+        Hive.registerAdapter(HabitLogAdapter());
+        print('DEBUG initialize: HabitLogAdapter registered');
+      }
+      if (!Hive.isAdapterRegistered(3)) {
+        Hive.registerAdapter(HabitFrequencyAdapter());
+        print('DEBUG initialize: HabitFrequencyAdapter registered');
+      }
+      if (!Hive.isAdapterRegistered(5)) {
+        Hive.registerAdapter(UserStreakAdapter());
+        print('DEBUG initialize: UserStreakAdapter registered');
+      }
+      
+      // Open boxes
+      if (!Hive.isBoxOpen('categories')) {
+        await Hive.openBox<Category>('categories');
+        print('DEBUG initialize: Categories box opened');
+      }
+      if (!Hive.isBoxOpen('habits')) {
+        await Hive.openBox<Habit>('habits');
+        print('DEBUG initialize: Habits box opened');
+      }
+      if (!Hive.isBoxOpen('habit_logs')) {
+        await Hive.openBox<HabitLog>('habit_logs');
+        print('DEBUG initialize: Habit logs box opened');
+      }
+      if (!Hive.isBoxOpen('user_streak')) {
+        await Hive.openBox<UserStreak>('user_streak');
+        print('DEBUG initialize: User streak box opened');
+      }
+      
+      // TEMPORARY FIX: Clear invalid habit logs
+      await _cleanupInvalidHabitLogs();
+      
+      _initialized = true;
+      print('DEBUG initialize: Database initialization completed successfully');
+    } catch (e, stackTrace) {
+      print('DEBUG initialize: Error during initialization: $e');
+      print('DEBUG initialize: Stack trace: $stackTrace');
+      rethrow;
+    }
   }
   
   Future<void> _cleanupInvalidHabitLogs() async {
@@ -79,6 +127,7 @@ class DatabaseService {
   Box<Category> get categoriesBox => Hive.box<Category>('categories');
   Box<Habit> get habitsBox => Hive.box<Habit>('habits');
   Box<HabitLog> get habitLogsBox => Hive.box<HabitLog>('habit_logs');
+  Box<UserStreak> get userStreakBox => Hive.box<UserStreak>('user_streak');
 
   Future<void> seedDefaultCategories() async {
     await initialize();

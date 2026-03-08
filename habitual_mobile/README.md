@@ -9,10 +9,21 @@ Aplikasi pelacak kebiasaan (habit tracker) yang dibuat dengan Flutter untuk memb
 - Deskripsi detail untuk setiap kebiasaan
 - Kategorisasi kebiasaan dengan warna dan ikon
 
+### 🔍 Pencarian Kebiasaan
+- Search bar di Home untuk mencari kebiasaan
+- Pencarian real-time berdasarkan judul, deskripsi, dan kategori
+- Tampilan hasil yang responsif
+
 ### 🔥 Sistem Streak
-- Hitung streak berturut-turut
+- Hitung streak berturut-turut per kebiasaan
 - Visual feedback dengan ikon api
 - Reset otomatis jika terlewat satu hari
+
+### 🔥 Streak Pengguna (Global)
+- Streak bertambah saat semua kebiasaan selesai dalam satu hari
+- Streak berkurang saat ada kebiasaan yang tidak selesai
+- Notifikasi milestone (3, 7, 14, 30, 50, 100 hari)
+- Notifikasi saat streak reset
 
 ### 📁 Kategori Kustom
 - Buat kategori sesuai kebutuhan
@@ -28,6 +39,22 @@ Aplikasi pelacak kebiasaan (habit tracker) yang dibuat dengan Flutter untuk memb
 - Arsipkan kebiasaan tanpa menghapus data
 - Aktifkan kembali kebiasaan yang diarsipkan
 - Soft delete untuk menjaga riwayat
+
+### 📅 Frekuensi Kebiasaan
+- Sekali
+- Harian
+- Mingguan
+
+### ⌛ Timer Kebiasaan
+- Timer khusus untuk setiap kebiasaan
+- Catat durasi pengerjaan
+- Tampilkan waktu rata-rata per kebiasaan
+
+### 🔔 Notifikasi dan Pengingat
+- Pengingat harian untuk kebiasaan tertentu
+- Pengingat khusus untuk kebiasaan dengan frekuensi tertentu
+- Notifikasi ketika streak mencapai angka tertentu (3, 7, 14, 30, 50, 100 hari)
+- Notifikasi saat streak reset
 
 ## 🛠️ Tech Stack
 
@@ -126,9 +153,7 @@ lib/
 
 ## 🔧 Fitur Mendatang
 
-- [ ] Notifikasi pengingat
 - [ ] Widget untuk home screen
-- [ ] Fitur pencarian
 - [ ] Fitur sharing
 
 ## 🤝 Kontribusi

@@ -2,15 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../shared/providers/habit_provider.dart';
+import '../../shared/providers/user_streak_provider.dart';
 import '../../shared/widgets/habit_card.dart';
 import 'add_habit_page.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    // Refresh streak saat halaman dibuka
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(userStreakProvider.notifier).reloadStreak();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final habitsAsync = ref.watch(habitsProvider);
+    final userStreak = ref.watch(userStreakProvider);
     final today = DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(DateTime.now());
 
     return Scaffold(
@@ -23,7 +48,7 @@ class HomePage extends ConsumerWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with date
+          // Header with date and streak
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -37,21 +62,102 @@ class HomePage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Hari ini',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  today,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hari ini',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            today,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // User Streak Display
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.local_fire_department,
+                            color: Colors.orange,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${userStreak.currentStreak}',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'hari',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
+            ),
+          ),
+
+          // Search bar
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cari kebiasaan...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            _searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surface,
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
             ),
           ),
 
@@ -60,11 +166,26 @@ class HomePage extends ConsumerWidget {
             child: habitsAsync.when(
               data: (habitsWithCategory) {
                 // Filter only non-archived habits
-                final activeHabits = habitsWithCategory
+                var activeHabits = habitsWithCategory
                     .where((hwc) => !hwc.habit.isArchived)
                     .toList();
 
+                // Apply search filter
+                if (_searchQuery.isNotEmpty) {
+                  activeHabits = activeHabits.where((hwc) {
+                    final title = hwc.habit.title.toLowerCase();
+                    final description = hwc.habit.description?.toLowerCase() ?? '';
+                    final category = hwc.category?.name.toLowerCase() ?? '';
+                    return title.contains(_searchQuery) ||
+                           description.contains(_searchQuery) ||
+                           category.contains(_searchQuery);
+                  }).toList();
+                }
+
                 if (activeHabits.isEmpty) {
+                  if (_searchQuery.isNotEmpty) {
+                    return _buildNoResultsState(context);
+                  }
                   return _buildEmptyState(context);
                 }
 
@@ -73,11 +194,11 @@ class HomePage extends ConsumerWidget {
                     ref.invalidate(habitsProvider);
                   },
                   child: ListView.builder(
-                    padding: const EdgeInsets.only(top: 16, bottom: 80),
+                    padding: const EdgeInsets.only(top: 0, bottom: 80),
                     itemCount: activeHabits.length,
                     itemBuilder: (context, index) {
                       final habitWithCategory = activeHabits[index];
-                      final habitKey = habitWithCategory.key ?? index; // Use actual key if available
+                      final habitKey = habitWithCategory.key ?? index;
                       
                       return HabitCard(
                         habitWithCategory: habitWithCategory,
@@ -127,6 +248,39 @@ class HomePage extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addHabit(context),
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildNoResultsState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 80,
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Tidak ada hasil',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Tidak ditemukan kebiasaan yang cocok dengan pencarian "$_searchQuery"',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

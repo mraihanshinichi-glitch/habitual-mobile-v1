@@ -53,6 +53,10 @@ dependencies:
   # Theme management
   shared_preferences: ^2.2.2
 
+  # Notifications
+  flutter_local_notifications: ^17.0.0
+  timezone: ^0.9.2
+
   # File operations for backup/restore
   # file_picker: ^5.5.0  # Temporarily disabled due to compilation issues
   # permission_handler: ^11.1.0
