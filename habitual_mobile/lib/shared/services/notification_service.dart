@@ -133,7 +133,7 @@ class NotificationService {
             presentSound: true,
           ),
         ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time, // Repeat daily
@@ -243,27 +243,6 @@ class NotificationService {
     try {
       final now = DateTime.now();
       final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-      
-      await _notifications.show(
-        0,
-        'Habitual Mobile',
-        'App dibuka pada $timeStr. Notifikasi berfungsi dengan baik! ✅',
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'test_channel',
-            'Test Notifications',
-            channelDescription: 'Channel untuk test notifikasi',
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
-      );
       
       print('DEBUG NotificationService: Test notification sent at $timeStr');
     } catch (e) {

@@ -40,7 +40,7 @@ class HabitRepository {
         result.add(HabitWithCategory(
           habit: habit, 
           category: category,
-          key: i, // Store the actual key
+          key: habit.key as int?, // Store the actual Hive key
         ));
       }
     }
@@ -146,7 +146,7 @@ class HabitRepository {
         result.add(HabitWithCategory(
           habit: habit, 
           category: category,
-          key: i,
+          key: habit.key as int?,
         ));
       }
     }
@@ -161,7 +161,7 @@ class HabitRepository {
     for (int i = 0; i < box.length; i++) {
       final h = box.getAt(i);
       if (h?.title == habit.title && h?.createdDate == habit.createdDate) {
-        return i;
+        return h?.key as int?;
       }
     }
     return null;

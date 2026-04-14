@@ -55,7 +55,7 @@ class SettingsPage extends ConsumerWidget {
                   builder: (context, ref, child) {
                     final themeNotifier = ref.read(themeProvider.notifier);
                     final currentTheme = ref.watch(themeProvider);
-                    
+
                     return ListTile(
                       leading: Icon(themeNotifier.themeIcon),
                       title: const Text('Mode Tema'),
@@ -64,36 +64,6 @@ class SettingsPage extends ConsumerWidget {
                       onTap: () => _showThemeDialog(context, ref),
                     );
                   },
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Notifications Section
-          _buildSectionTitle(context, 'Notifikasi'),
-          Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.notifications_outlined),
-                  title: const Text('Test Notifikasi'),
-                  subtitle: const Text('Kirim notifikasi test untuk memastikan berfungsi'),
-                  trailing: const Icon(Icons.send),
-                  onTap: () => _sendTestNotification(context),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.notification_important_outlined),
-                  title: const Text('Izin Notifikasi'),
-                  subtitle: const Text('Kelola izin notifikasi aplikasi'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _requestNotificationPermission(context),
                 ),
               ],
             ),
@@ -113,7 +83,9 @@ class SettingsPage extends ConsumerWidget {
                 ListTile(
                   leading: const Icon(Icons.archive_outlined),
                   title: const Text('Kebiasaan Terarsip'),
-                  subtitle: const Text('Lihat dan kelola kebiasaan yang diarsipkan'),
+                  subtitle: const Text(
+                    'Lihat dan kelola kebiasaan yang diarsipkan',
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _navigateToArchivedHabits(context),
                 ),
@@ -167,108 +139,21 @@ class SettingsPage extends ConsumerWidget {
   }
 
   void _navigateToArchivedHabits(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const ArchivedHabitsPage(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const ArchivedHabitsPage()));
   }
 
   void _navigateToCategories(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const CategoriesPage(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const CategoriesPage()));
   }
 
   void _navigateToBackupRestore(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const BackupRestorePage(),
-      ),
-    );
-  }
-
-
-
-  void _sendTestNotification(BuildContext context) async {
-    try {
-      final notificationService = NotificationService();
-      await notificationService.showTestNotification();
-      
-      if (context.mounted) {
-        // Show dialog instead of actual notification for now
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Row(
-              children: [
-                Icon(Icons.notifications, color: Colors.green),
-                const SizedBox(width: 8),
-                const Text('Test Notification'),
-              ],
-            ),
-            content: const Text(
-              'Notifikasi berfungsi dengan baik!\n\n'
-              'Catatan: Implementasi notifikasi saat ini menggunakan dialog '
-              'karena ada masalah kompatibilitas dengan library notifikasi.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Test notifikasi berhasil dikirim! (Dialog mode)'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal mengirim notifikasi: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _requestNotificationPermission(BuildContext context) async {
-    try {
-      final notificationService = NotificationService();
-      final granted = await notificationService.requestPermissions();
-      
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              granted 
-                  ? 'Izin notifikasi berhasil diberikan!'
-                  : 'Izin notifikasi ditolak. Silakan aktifkan di pengaturan sistem.',
-            ),
-            backgroundColor: granted ? Colors.green : Colors.orange,
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const BackupRestorePage()));
   }
 
   void _showThemeDialog(BuildContext context, WidgetRef ref) {
@@ -314,10 +199,7 @@ class SettingsPage extends ConsumerWidget {
       context: context,
       applicationName: 'Habitual Mobile',
       applicationVersion: '1.0.0',
-      applicationIcon: const Icon(
-        Icons.task_alt,
-        size: 48,
-      ),
+      applicationIcon: const Icon(Icons.task_alt, size: 48),
       children: [
         const Text(
           'Aplikasi pelacak kebiasaan yang membantu Anda membangun rutinitas positif dan mencapai tujuan harian.',

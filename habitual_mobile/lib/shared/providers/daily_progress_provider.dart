@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/habit_repository.dart';
 import '../repositories/habit_log_repository.dart';
 import 'habit_provider.dart';
+import 'user_streak_provider.dart';
 
 class DailyProgressData {
   final int totalHabits;
@@ -93,6 +94,13 @@ class DailyProgressNotifier extends StateNotifier<AsyncValue<DailyProgressData>>
       
       // Refresh progress after toggle
       await loadDailyProgress();
+      
+      // Update streak
+      final currentState = state.value;
+      if (currentState != null) {
+        final anyCompleted = currentState.completedHabits > 0;
+        await _ref.read(userStreakProvider.notifier).checkAndUpdateStreak(anyCompleted);
+      }
     } catch (error) {
       // Handle error silently or show notification
       print('Error toggling habit completion: $error');
