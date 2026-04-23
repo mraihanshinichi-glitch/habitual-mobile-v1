@@ -151,11 +151,6 @@ lib/
 4. **Lihat Statistik**: Buka tab Statistik untuk melihat progress Anda
 5. **Arsip Kebiasaan**: Edit kebiasaan dan pilih "Arsipkan" untuk menyembunyikan tanpa menghapus data
 
-## 🔧 Fitur Mendatang
-
-- [ ] Widget untuk home screen
-- [ ] Fitur sharing
-
 ## 🤝 Kontribusi
 
 Kontribusi selalu diterima! Silakan buat issue atau pull request.
