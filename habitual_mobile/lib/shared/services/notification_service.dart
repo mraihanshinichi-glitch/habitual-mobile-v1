@@ -113,31 +113,60 @@ class NotificationService {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
       
-      await _notifications.zonedSchedule(
-        habitId,
-        'Pengingat Kebiasaan',
-        'Waktunya untuk: $habitTitle',
-        scheduledDate,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'habit_reminders',
-            'Pengingat Kebiasaan',
-            channelDescription: 'Notifikasi pengingat untuk kebiasaan harian',
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
+      try {
+        await _notifications.zonedSchedule(
+          habitId,
+          'Pengingat Kebiasaan',
+          'Waktunya untuk: $habitTitle',
+          scheduledDate,
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              'habit_reminders',
+              'Pengingat Kebiasaan',
+              channelDescription: 'Notifikasi pengingat untuk kebiasaan harian',
+              importance: Importance.high,
+              priority: Priority.high,
+              icon: '@mipmap/ic_launcher',
+            ),
+            iOS: const DarwinNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
+            ),
           ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.time, // Repeat daily
+        );
+      } catch (e) {
+        print('DEBUG NotificationService: exact notification failed, falling back to inexact. Error: $e');
+        await _notifications.zonedSchedule(
+          habitId,
+          'Pengingat Kebiasaan',
+          'Waktunya untuk: $habitTitle',
+          scheduledDate,
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              'habit_reminders',
+              'Pengingat Kebiasaan',
+              channelDescription: 'Notifikasi pengingat untuk kebiasaan harian',
+              importance: Importance.high,
+              priority: Priority.high,
+              icon: '@mipmap/ic_launcher',
+            ),
+            iOS: const DarwinNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
+            ),
           ),
-        ),
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents: DateTimeComponents.time, // Repeat daily
-      );
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.time, // Repeat daily
+        );
+      }
       
       print('DEBUG NotificationService: Scheduled daily reminder for "$habitTitle" at $hour:$minute');
     } catch (e) {

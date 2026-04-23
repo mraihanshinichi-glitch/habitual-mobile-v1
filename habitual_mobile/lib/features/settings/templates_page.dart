@@ -40,7 +40,7 @@ class _TemplatesPageState extends State<TemplatesPage> {
               itemBuilder: (context, index) {
                 final category = categories[index];
                 final isSelected = category == _selectedCategory;
-                
+
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: FilterChip(
@@ -77,9 +77,7 @@ class _TemplatesPageState extends State<TemplatesPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () => _showTemplateDetails(context, template),
         borderRadius: BorderRadius.circular(12),
@@ -101,9 +99,9 @@ class _TemplatesPageState extends State<TemplatesPage> {
                   size: 24,
                 ),
               ),
-              
+
               const SizedBox(width: 16),
-              
+
               // Content
               Expanded(
                 child: Column(
@@ -119,7 +117,9 @@ class _TemplatesPageState extends State<TemplatesPage> {
                     Text(
                       template.description,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.7),
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -128,14 +128,22 @@ class _TemplatesPageState extends State<TemplatesPage> {
                     Wrap(
                       spacing: 4,
                       children: [
-                        _buildChip(context, template.category, Color(template.color)),
-                        _buildChip(context, template.difficulty, _getDifficultyColor(template.difficulty)),
+                        _buildChip(
+                          context,
+                          template.category,
+                          Color(template.color),
+                        ),
+                        _buildChip(
+                          context,
+                          template.difficulty,
+                          _getDifficultyColor(template.difficulty),
+                        ),
                       ],
                     ),
                   ],
                 ),
               ),
-              
+
               const Icon(Icons.chevron_right),
             ],
           ),
@@ -203,7 +211,7 @@ class _TemplatesPageState extends State<TemplatesPage> {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Icon and Title
               Row(
                 children: [
@@ -227,50 +235,52 @@ class _TemplatesPageState extends State<TemplatesPage> {
                       children: [
                         Text(
                           template.title,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Text(
                           template.category,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Color(template.color),
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: Color(template.color)),
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Description
               Text(
                 'Deskripsi',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
                 template.description,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Details
               Text(
                 'Detail',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              _buildDetailRow(context, 'Tingkat Kesulitan', template.difficulty),
+              _buildDetailRow(
+                context,
+                'Tingkat Kesulitan',
+                template.difficulty,
+              ),
               _buildDetailRow(context, 'Frekuensi', template.frequency),
-              
+
               if (template.tags.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Text(
@@ -283,15 +293,21 @@ class _TemplatesPageState extends State<TemplatesPage> {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: template.tags.map((tag) => Chip(
-                    label: Text(tag),
-                    backgroundColor: Color(template.color).withOpacity(0.1),
-                  )).toList(),
+                  children: template.tags
+                      .map(
+                        (tag) => Chip(
+                          label: Text(tag),
+                          backgroundColor: Color(
+                            template.color,
+                          ).withOpacity(0.1),
+                        ),
+                      )
+                      .toList(),
                 ),
               ],
-              
+
               const SizedBox(height: 32),
-              
+
               // Use Template Button
               SizedBox(
                 width: double.infinity,
@@ -301,13 +317,10 @@ class _TemplatesPageState extends State<TemplatesPage> {
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Template "${template.title}" akan ditambahkan'),
-                        action: SnackBarAction(
-                          label: 'Buat',
-                          onPressed: () {
-                            // TODO: Navigate to add habit page with template data
-                          },
+                        content: Text(
+                          'Template "${template.title}" akan ditambahkan',
                         ),
+                        action: SnackBarAction(label: 'Buat', onPressed: () {}),
                       ),
                     );
                   },
@@ -336,9 +349,9 @@ class _TemplatesPageState extends State<TemplatesPage> {
           ),
           Text(
             value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
           ),
         ],
       ),

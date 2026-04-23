@@ -250,7 +250,6 @@ class SettingsPage extends ConsumerWidget {
   }
 
   void _deleteAllData(BuildContext context) {
-    // TODO: Implement delete all data functionality
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Fitur ini akan diimplementasikan'),

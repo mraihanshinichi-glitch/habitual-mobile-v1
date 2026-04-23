@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/habit.dart';
 import '../repositories/habit_repository.dart';
 import '../repositories/habit_log_repository.dart';
-import '../services/notification_service.dart';
+import '../services/background_service.dart';
 import 'user_streak_provider.dart';
 
 final habitRepositoryProvider = Provider<HabitRepository>((ref) {
@@ -27,7 +27,6 @@ final archivedHabitsProvider = FutureProvider<List<HabitWithCategory>>((ref) asy
 class HabitNotifier extends StateNotifier<AsyncValue<List<HabitWithCategory>>> {
   final HabitRepository _habitRepository;
   final HabitLogRepository _logRepository;
-  final NotificationService _notificationService = NotificationService();
   final Ref _ref;
 
   HabitNotifier(this._habitRepository, this._logRepository, this._ref) 
@@ -56,10 +55,8 @@ class HabitNotifier extends StateNotifier<AsyncValue<List<HabitWithCategory>>> {
       final habitKey = await _habitRepository.createHabit(habit);
       print('DEBUG addHabit: Created habit with key: $habitKey');
       
-      // Schedule notification if enabled
-      if (habit.effectiveHasNotification && habit.notificationTime != null) {
-        await _scheduleHabitNotification(habitKey, habit);
-      }
+      // Reschedule all notification to ensure sync
+      await BackgroundService().rescheduleAllNotifications();
       
       // DO NOT create any habit logs for new habits
       // Let user manually complete them
@@ -80,13 +77,8 @@ class HabitNotifier extends StateNotifier<AsyncValue<List<HabitWithCategory>>> {
       
       await _habitRepository.updateHabit(habit, key);
       
-      // Cancel existing notification
-      await _notificationService.cancelHabitNotification(key);
-      
-      // Schedule new notification if enabled
-      if (habit.effectiveHasNotification && habit.notificationTime != null) {
-        await _scheduleHabitNotification(key, habit);
-      }
+      // Reschedule all notification to ensure sync
+      await BackgroundService().rescheduleAllNotifications();
       
       await loadHabits(); // Refresh the list
       return true;
@@ -98,10 +90,10 @@ class HabitNotifier extends StateNotifier<AsyncValue<List<HabitWithCategory>>> {
 
   Future<bool> deleteHabit(int key) async {
     try {
-      // Cancel notification before deleting habit
-      await _notificationService.cancelHabitNotification(key);
+      // Notification rescheduling will be handled after deletion
       
       await _habitRepository.deleteHabit(key);
+      await BackgroundService().rescheduleAllNotifications();
       await loadHabits(); // Refresh the list
       return true;
     } catch (error) {
@@ -109,25 +101,11 @@ class HabitNotifier extends StateNotifier<AsyncValue<List<HabitWithCategory>>> {
     }
   }
 
-  Future<void> _scheduleHabitNotification(int habitKey, Habit habit) async {
-    try {
-      if (habit.notificationTime != null) {
-        await _notificationService.scheduleDailyHabitReminder(
-          habitId: habitKey,
-          habitTitle: habit.title,
-          hour: habit.notificationTime!.hour,
-          minute: habit.notificationTime!.minute,
-        );
-        print('DEBUG _scheduleHabitNotification: Scheduled notification for "${habit.title}" at ${habit.notificationTime!.hour}:${habit.notificationTime!.minute}');
-      }
-    } catch (e) {
-      print('DEBUG _scheduleHabitNotification: Error scheduling notification: $e');
-    }
-  }
 
   Future<bool> archiveHabit(int key, bool isArchived) async {
     try {
       await _habitRepository.archiveHabit(key, isArchived);
+      await BackgroundService().rescheduleAllNotifications();
       await loadHabits(); // Refresh the list
       return true;
     } catch (error) {
