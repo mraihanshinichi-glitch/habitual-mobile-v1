@@ -19,7 +19,7 @@ class CategorySelector extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsync = ref.watch(categoryProvider);
-    
+
     return categoriesAsync.when(
       data: (categories) => _buildSelector(context, categories),
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -28,9 +28,13 @@ class CategorySelector extends ConsumerWidget {
   }
 
   Widget _buildSelector(BuildContext context, List<Category> categories) {
-    print('DEBUG CategorySelector: selectedCategory = ${selectedCategory?.name}');
-    print('DEBUG CategorySelector: available categories = ${categories.map((c) => c.name).toList()}');
-    
+    print(
+      'DEBUG CategorySelector: selectedCategory = ${selectedCategory?.name}',
+    );
+    print(
+      'DEBUG CategorySelector: available categories = ${categories.map((c) => c.name).toList()}',
+    );
+
     // Find the actual category object from the list that matches selectedCategory
     Category? actualSelectedCategory;
     if (selectedCategory != null) {
@@ -39,33 +43,39 @@ class CategorySelector extends ConsumerWidget {
         actualSelectedCategory = categories.firstWhere(
           (cat) => cat == selectedCategory,
         );
-        print('DEBUG CategorySelector: Found exact match: ${actualSelectedCategory.name}');
+        print(
+          'DEBUG CategorySelector: Found exact match: ${actualSelectedCategory.name}',
+        );
       } catch (e) {
         // Fallback to name matching
         try {
           actualSelectedCategory = categories.firstWhere(
             (cat) => cat.name == selectedCategory!.name,
           );
-          print('DEBUG CategorySelector: Found name match: ${actualSelectedCategory.name}');
+          print(
+            'DEBUG CategorySelector: Found name match: ${actualSelectedCategory.name}',
+          );
         } catch (e2) {
-          actualSelectedCategory = categories.isNotEmpty ? categories.first : null;
-          print('DEBUG CategorySelector: Using fallback: ${actualSelectedCategory?.name}');
+          actualSelectedCategory = categories.isNotEmpty
+              ? categories.first
+              : null;
+          print(
+            'DEBUG CategorySelector: Using fallback: ${actualSelectedCategory?.name}',
+          );
         }
       }
     }
-    
+
     return DropdownButtonFormField<Category>(
-      value: actualSelectedCategory,
+      initialValue: actualSelectedCategory,
       decoration: InputDecoration(
         labelText: 'Kategori',
         hintText: hintText ?? 'Pilih kategori',
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         prefixIcon: actualSelectedCategory != null
             ? Icon(
-                AppIcons.getIcon(actualSelectedCategory!.icon),
-                color: Color(actualSelectedCategory!.color),
+                AppIcons.getIcon(actualSelectedCategory.icon),
+                color: Color(actualSelectedCategory.color),
               )
             : const Icon(Icons.category),
       ),

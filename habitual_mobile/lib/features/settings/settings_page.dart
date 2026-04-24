@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../shared/providers/theme_provider.dart';
-import '../../shared/services/notification_service.dart';
-
 import 'archived_habits_page.dart';
 import 'categories_page.dart';
 import 'backup_restore_page.dart';
@@ -54,8 +52,6 @@ class SettingsPage extends ConsumerWidget {
                 Consumer(
                   builder: (context, ref, child) {
                     final themeNotifier = ref.read(themeProvider.notifier);
-                    final currentTheme = ref.watch(themeProvider);
-
                     return ListTile(
                       leading: Icon(themeNotifier.themeIcon),
                       title: const Text('Mode Tema'),
@@ -215,46 +211,6 @@ class SettingsPage extends ConsumerWidget {
         const Text('• Statistik dan grafik'),
         const Text('• Arsip kebiasaan'),
       ],
-    );
-  }
-
-  void _showDeleteAllDataDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hapus Semua Data'),
-        content: const Text(
-          'Apakah Anda yakin ingin menghapus semua data? '
-          'Tindakan ini tidak dapat dibatalkan dan akan menghapus:\n\n'
-          '• Semua kebiasaan\n'
-          '• Semua log penyelesaian\n'
-          '• Semua kategori kustom\n\n'
-          'Data default akan dikembalikan.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _deleteAllData(context);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Hapus Semua'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _deleteAllData(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fitur ini akan diimplementasikan'),
-        backgroundColor: Colors.orange,
-      ),
     );
   }
 }

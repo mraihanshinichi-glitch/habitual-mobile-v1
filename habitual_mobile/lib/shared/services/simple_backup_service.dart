@@ -7,8 +7,6 @@ import '../models/habit_log.dart';
 import '../../core/database/database_service.dart';
 
 class SimpleBackupService {
-  static const String _backupFileName = 'habitual_backup.json';
-
   Future<Map<String, dynamic>> exportData() async {
     final databaseService = DatabaseService.instance;
     await databaseService.initialize();
@@ -22,23 +20,35 @@ class SimpleBackupService {
     final backup = {
       'version': '1.0.0',
       'timestamp': DateTime.now().toIso8601String(),
-      'categories': categories.map((category) => {
-        'name': category.name,
-        'color': category.color,
-        'icon': category.icon,
-        'createdAt': category.createdAt.toIso8601String(),
-      }).toList(),
-      'habits': habits.map((habit) => {
-        'title': habit.title,
-        'description': habit.description,
-        'categoryId': habit.categoryId,
-        'isArchived': habit.isArchived,
-        'createdDate': habit.createdDate.toIso8601String(),
-      }).toList(),
-      'habitLogs': habitLogs.map((log) => {
-        'habitId': log.habitId,
-        'completionDate': log.completionDate.toIso8601String(),
-      }).toList(),
+      'categories': categories
+          .map(
+            (category) => {
+              'name': category.name,
+              'color': category.color,
+              'icon': category.icon,
+              'createdAt': category.createdAt.toIso8601String(),
+            },
+          )
+          .toList(),
+      'habits': habits
+          .map(
+            (habit) => {
+              'title': habit.title,
+              'description': habit.description,
+              'categoryId': habit.categoryId,
+              'isArchived': habit.isArchived,
+              'createdDate': habit.createdDate.toIso8601String(),
+            },
+          )
+          .toList(),
+      'habitLogs': habitLogs
+          .map(
+            (log) => {
+              'habitId': log.habitId,
+              'completionDate': log.completionDate.toIso8601String(),
+            },
+          )
+          .toList(),
     };
 
     return backup;
@@ -50,9 +60,10 @@ class SimpleBackupService {
       final jsonString = const JsonEncoder.withIndent('  ').convert(backup);
 
       // Try multiple storage locations for maximum accessibility
-      final fileName = 'habitual_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+      final fileName =
+          'habitual_backup_${DateTime.now().millisecondsSinceEpoch}.json';
       String? filePath;
-      
+
       // Option 1: Downloads directory (most accessible)
       try {
         final downloadsDir = Directory('/storage/emulated/0/Download');
@@ -65,7 +76,7 @@ class SimpleBackupService {
       } catch (e) {
         print('DEBUG: Downloads directory not accessible: $e');
       }
-      
+
       // Option 2: External storage directory
       if (filePath == null) {
         try {
@@ -80,7 +91,7 @@ class SimpleBackupService {
           print('DEBUG: External storage not accessible: $e');
         }
       }
-      
+
       // Option 3: App documents directory (fallback)
       if (filePath == null) {
         try {
@@ -93,7 +104,7 @@ class SimpleBackupService {
           print('DEBUG: App documents directory not accessible: $e');
         }
       }
-      
+
       return filePath;
     } catch (e) {
       throw Exception('Failed to create backup: $e');
@@ -109,12 +120,12 @@ class SimpleBackupService {
 
       final jsonString = await file.readAsString();
       final backup = jsonDecode(jsonString) as Map<String, dynamic>;
-      
+
       // Validate backup format
       if (!_isValidBackup(backup)) {
         throw Exception('Invalid backup file format');
       }
-      
+
       return backup;
     } catch (e) {
       throw Exception('Failed to read backup file: $e');
@@ -145,7 +156,9 @@ class SimpleBackupService {
           icon: categoryData['icon'] as String,
           createdAt: DateTime.parse(categoryData['createdAt'] as String),
         );
-        await databaseService.categoriesBox.add(category); // Use add() for consistency
+        await databaseService.categoriesBox.add(
+          category,
+        ); // Use add() for consistency
       }
 
       print('DEBUG: Restored ${categories.length} categories');
@@ -174,7 +187,9 @@ class SimpleBackupService {
           habitId: logData['habitId'] as int,
           completionDate: DateTime.parse(logData['completionDate'] as String),
         );
-        await databaseService.habitLogsBox.add(log); // Use add() for consistency
+        await databaseService.habitLogsBox.add(
+          log,
+        ); // Use add() for consistency
       }
 
       print('DEBUG: Restored ${habitLogs.length} habit logs');
@@ -189,9 +204,9 @@ class SimpleBackupService {
 
   bool _isValidBackup(Map<String, dynamic> backup) {
     return backup.containsKey('version') &&
-           backup.containsKey('categories') &&
-           backup.containsKey('habits') &&
-           backup.containsKey('habitLogs');
+        backup.containsKey('categories') &&
+        backup.containsKey('habits') &&
+        backup.containsKey('habitLogs');
   }
 
   Future<Map<String, int>> getBackupStats(Map<String, dynamic> backup) async {
@@ -205,14 +220,18 @@ class SimpleBackupService {
   Future<List<String>> getAvailableBackups() async {
     try {
       final backupFiles = <String>[];
-      
+
       // Search in Downloads directory
       try {
         final downloadsDir = Directory('/storage/emulated/0/Download');
         if (await downloadsDir.exists()) {
           final files = await downloadsDir.list().toList();
           final downloadBackups = files
-              .where((file) => file.path.contains('habitual_backup') && file.path.endsWith('.json'))
+              .where(
+                (file) =>
+                    file.path.contains('habitual_backup') &&
+                    file.path.endsWith('.json'),
+              )
               .map((file) => file.path)
               .toList();
           backupFiles.addAll(downloadBackups);
@@ -221,29 +240,39 @@ class SimpleBackupService {
       } catch (e) {
         print('DEBUG: Error reading Downloads directory: $e');
       }
-      
+
       // Search in external storage directory
       try {
         final externalDir = await getExternalStorageDirectory();
         if (externalDir != null) {
           final files = await externalDir.list().toList();
           final externalBackups = files
-              .where((file) => file.path.contains('habitual_backup') && file.path.endsWith('.json'))
+              .where(
+                (file) =>
+                    file.path.contains('habitual_backup') &&
+                    file.path.endsWith('.json'),
+              )
               .map((file) => file.path)
               .toList();
           backupFiles.addAll(externalBackups);
-          print('DEBUG: Found ${externalBackups.length} backups in external storage');
+          print(
+            'DEBUG: Found ${externalBackups.length} backups in external storage',
+          );
         }
       } catch (e) {
         print('DEBUG: Error reading external storage: $e');
       }
-      
+
       // Search in app documents directory
       try {
         final appDir = await getApplicationDocumentsDirectory();
         final files = await appDir.list().toList();
         final appBackups = files
-            .where((file) => file.path.contains('habitual_backup') && file.path.endsWith('.json'))
+            .where(
+              (file) =>
+                  file.path.contains('habitual_backup') &&
+                  file.path.endsWith('.json'),
+            )
             .map((file) => file.path)
             .toList();
         backupFiles.addAll(appBackups);
@@ -251,7 +280,7 @@ class SimpleBackupService {
       } catch (e) {
         print('DEBUG: Error reading app documents directory: $e');
       }
-      
+
       // Remove duplicates and sort by modification time
       final uniqueBackups = backupFiles.toSet().toList();
       uniqueBackups.sort((a, b) {
@@ -263,7 +292,7 @@ class SimpleBackupService {
           return 0;
         }
       });
-      
+
       print('DEBUG: Total unique backup files found: ${uniqueBackups.length}');
       return uniqueBackups;
     } catch (e) {
